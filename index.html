@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MezSpace — Reserva de Escritorios</title>
+  <meta name="description" content="Reserva tu escritorio en las instalaciones de Meztal">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230C2340'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' fill='%23E87020' font-weight='900' font-size='18' font-family='system-ui'%3EM%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────── -->
+<header class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">M</div>
+    <div class="logo-text">
+      <span class="logo-name">MezSpace</span>
+      <span class="logo-sub">Reserva de escritorios</span>
+    </div>
+  </a>
+  <div>
+    <a href="admin.html" class="btn-ghost">Panel Admin →</a>
+  </div>
+</header>
+
+<!-- ── Week Calendar Bar ──────────────────────────── -->
+<div class="week-bar">
+  <button class="wk-nav" id="prevWk" title="Semana anterior">&#8249;</button>
+  <span class="wk-label" id="wkLabel">—</span>
+  <button class="wk-nav" id="nextWk" title="Siguiente semana">&#8250;</button>
+  <div class="day-strip" id="dayStrip"></div>
+</div>
+
+<!-- ── Main ──────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Floor Panel -->
+  <div class="floor-panel">
+
+    <!-- Legend -->
+    <div class="legend">
+      <span class="legend-lbl">Simbología</span>
+      <div class="leg-item">
+        <div class="leg-box av">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="4" width="20" height="13" rx="2" stroke="#8898B0" stroke-width="2"/>
+          </svg>
+        </div>
+        Disponible
+      </div>
+      <div class="leg-item">
+        <div class="leg-box oc">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="4" width="20" height="13" rx="2" stroke="#E87020" stroke-width="2"/>
+          </svg>
+        </div>
+        Ocupado
+      </div>
+      <div class="leg-item">
+        <div class="leg-box sl">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="4" width="20" height="13" rx="2" stroke="#1565C0" stroke-width="2"/>
+          </svg>
+        </div>
+        Seleccionado
+      </div>
+      <div class="leg-item">
+        <div class="leg-box mn">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="4" width="20" height="13" rx="2" stroke="#2E7D32" stroke-width="2"/>
+          </svg>
+        </div>
+        Mi reserva
+      </div>
+      <div class="leg-item">
+        <div class="leg-box ad"></div>
+        Área administrativa
+      </div>
+    </div>
+
+    <!-- Date tag -->
+    <div class="date-tag" id="dateTag">—</div>
+
+    <!-- Floor plan rendered by JS -->
+    <div class="floor-plan" id="floorPlan"></div>
+
+  </div><!-- /floor-panel -->
+
+  <!-- Booking Side Panel -->
+  <div class="side-panel">
+
+    <div class="panel-head">
+      <div class="panel-title">Reservar escritorio</div>
+      <div class="panel-sub">Haz clic en un escritorio para seleccionarlo</div>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- User data -->
+      <div class="p-section">
+        <div class="p-sec-title">Tus datos</div>
+        <div class="form-group">
+          <label class="f-label" for="userName">Nombre completo</label>
+          <input type="text" id="userName" class="f-input"
+            placeholder="Ana García" maxlength="60" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="f-label" for="userEmail">Correo electrónico</label>
+          <input type="email" id="userEmail" class="f-input"
+            placeholder="ana@empresa.com" autocomplete="email">
+        </div>
+      </div>
+
+      <!-- Selected desks -->
+      <div class="p-section">
+        <div class="p-sec-title">Escritorios seleccionados</div>
+        <div class="sel-list" id="selList">
+          <div class="sel-empty">Haz clic en un escritorio<br>para seleccionarlo</div>
+        </div>
+      </div>
+
+    </div><!-- /panel-body -->
+
+    <div class="panel-foot">
+      <button class="btn-confirm" id="confirmBtn" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Confirmar reserva
+      </button>
+    </div>
+
+    <!-- My bookings -->
+    <div class="my-bk-zone">
+      <div class="my-bk-title">Mis reservas activas</div>
+      <div class="my-bk-list" id="myBkList">
+        <div class="bk-empty">Ingresa tu correo para ver tus reservas</div>
+      </div>
+    </div>
+
+  </div><!-- /side-panel -->
+
+</div><!-- /main -->
+
+<!-- Toast zone -->
+<div class="toast-zone" id="toastZone"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
