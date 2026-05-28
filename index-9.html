@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MezSpace — Reserva de Escritorios</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111C2E'/%3E%3Ccircle cx='16' cy='16' r='3.2' fill='%23E8722A'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A' transform='rotate(60 16 16)'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A' transform='rotate(120 16 16)'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A' transform='rotate(180 16 16)'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A' transform='rotate(240 16 16)'/%3E%3Cpath d='M16 16L14.4 11L16 3.5L17.6 11Z' fill='%23E8722A' transform='rotate(300 16 16)'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".95"/>
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".75" transform="rotate(60 14 14)"/>
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".55" transform="rotate(120 14 14)"/>
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".95" transform="rotate(180 14 14)"/>
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".75" transform="rotate(240 14 14)"/>
+        <path d="M14 14L12.5 10L14 3L15.5 10Z" fill="white" opacity=".55" transform="rotate(300 14 14)"/>
+        <circle cx="14" cy="14" r="2.8" fill="white"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-name">MezSpace</span>
+      <span class="logo-sub">Reserva de escritorios</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="admin.html" class="btn-header">Panel Admin →</a>
+  </div>
+</header>
+
+<!-- Topbar: occupancy + date -->
+<div class="topbar">
+  <div class="occ-group">
+    <span class="occ-label">Ocupación del día</span>
+    <div class="occ-track"><div class="occ-fill low" id="occFill" style="width:0%"></div></div>
+    <span class="occ-num" id="occNum">0 de 30</span>
+  </div>
+  <div class="topbar-sep"></div>
+  <span class="topbar-date" id="occDate">—</span>
+</div>
+
+<!-- Week strip -->
+<div class="week-strip">
+  <button class="wk-nav" id="prevWk">&#8249;</button>
+  <span class="wk-range" id="wkRange">—</span>
+  <button class="wk-nav" id="nextWk">&#8250;</button>
+  <div class="day-chips" id="dayChips"></div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Floor panel -->
+  <div class="floor-panel">
+    <div class="floor-card">
+      <div class="floor-card-head">
+        <span class="floor-card-title">Planta de Oficina</span>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot av"></div>Disponible</div>
+          <div class="leg-item"><div class="leg-dot oc"></div>Ocupado</div>
+          <div class="leg-item"><div class="leg-dot sl"></div>Seleccionado</div>
+          <div class="leg-item"><div class="leg-dot mn"></div>Mi reserva</div>
+          <div class="leg-item"><div class="leg-dot ad"></div>Administrativo</div>
+        </div>
+      </div>
+      <div class="floor-body">
+        <div id="floorPlan" style="display:contents"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="side-panel">
+
+    <!-- Booking form card -->
+    <div class="p-card">
+      <div class="p-card-head">
+        <div class="p-card-title">Reservar escritorio</div>
+        <div class="p-card-sub">Selecciona uno o varios escritorios</div>
+      </div>
+      <div class="p-card-body">
+        <div class="f-group">
+          <label class="f-label" for="userName">Nombre completo</label>
+          <input type="text" id="userName" class="f-input" placeholder="Ana García" maxlength="60" autocomplete="name">
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="userEmail">Correo electrónico</label>
+          <input type="email" id="userEmail" class="f-input" placeholder="ana@empresa.com" autocomplete="email">
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="f-label" style="margin-bottom:6px">Escritorios seleccionados</div>
+          <div class="sel-list" id="selList">
+            <div class="sel-empty">Haz clic en un escritorio<br>para seleccionarlo</div>
+          </div>
+        </div>
+      </div>
+      <div class="p-card-foot">
+        <button class="btn-confirm" id="confirmBtn" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Confirmar reserva
+        </button>
+      </div>
+    </div>
+
+    <!-- My bookings card -->
+    <div class="p-card">
+      <div class="p-card-head">
+        <div class="p-card-title">Mis reservas activas</div>
+        <div class="p-card-sub">Clic en "Cancelar" para liberar un escritorio</div>
+      </div>
+      <div class="p-card-body">
+        <div class="bk-list" id="myBkList">
+          <div class="bk-empty">Ingresa tu correo para ver tus reservas</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Cancel modal -->
+<div class="modal-overlay hidden" id="cancelModal">
+  <div class="modal-card">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Cancelar reserva</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-keep" id="cancelNo">Mantener</button>
+      <button class="btn-modal-del"  id="cancelYes">Sí, cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-zone" id="toastZone"></div>
+<script src="app.js"></script>
+</body>
+</html>
