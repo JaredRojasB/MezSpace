@@ -5,6 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MezSpace — Admin</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.rep-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.rep-kpi{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 12px}
+.rep-kpi b{display:block;font-size:20px;color:var(--navy);line-height:1.2}
+.rep-kpi span{font-size:10.5px;color:var(--gray-400)}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.rep-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.rep-tbl th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);padding:6px 8px;border-bottom:1px solid var(--gray-200)}
+.rep-tbl td{padding:6px 8px;border-bottom:1px solid var(--gray-100)}
+.rep-tbl td.n,.rep-tbl th.n{text-align:right;white-space:nowrap}
+.rep-h{font-size:11px;font-weight:800;color:var(--navy);margin:0 0 6px}
+@media print{
+  body{height:auto!important;overflow:visible!important;display:block!important}
+  .header,#pinScreen,.tbl-card:not(#reportCard),.stats-row,.toast-zone,.tbl-filters{display:none!important}
+  #adminDash{display:block!important}
+  #reportCard{box-shadow:none;border:none}
+  #reportCard .tbl-toolbar:before{content:"MezSpace - Meztal office usage report";display:block;font-weight:800;margin-bottom:4px}
+}
+</style>
 </head>
 <body>
 <header class="header">
@@ -45,6 +64,19 @@
         <span id="admDateLbl" style="font-size:12px;color:var(--gray-400)"></span>
       </div>
       <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px" id="rowOccGrid"></div>
+    </div>
+
+    <!-- Monthly report -->
+    <div class="tbl-card" id="reportCard" style="margin-bottom:16px">
+      <div class="tbl-toolbar" style="border-bottom:1px solid var(--gray-200)">
+        <span class="tbl-title">Monthly Usage Report</span>
+        <div class="tbl-filters">
+          <input class="f-date" id="repMonth" type="month">
+          <button class="btn-clear" id="btnRepCsv">Download CSV</button>
+          <button class="btn-clear" id="btnRepPrint">Print / Save PDF</button>
+        </div>
+      </div>
+      <div id="repBody" style="padding:14px 18px"></div>
     </div>
 
     <!-- Desk reservations -->

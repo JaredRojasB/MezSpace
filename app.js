@@ -28,16 +28,35 @@ function tOverlap(s1,e1,s2,e2){ return tF(s1)<tF(e2)&&tF(e1)>tF(s2); }
 
 // ── Companies ──────────────────────────────────────────────
 const COMPANIES={
-  'Accushield':'#C0392B','Anthem':'#D35400','Asbury Communities':'#B7950B',
-  'Atlas':'#1E8449','Avanti':'#148F77','Bickford SL':'#1A5276',
-  'CCL':'#6C3483','Choice Digital':'#C0185C','Compass Group':'#0E6655',
-  'Full Life Care':'#7D6608','GKV':'#1D6A39','HumanGood':'#154360',
-  'KARE':'#922B21','Lenity Management':'#A04000','Lifespace':'#0B5345',
-  'LTC Properties Inc':'#4A235A','Markentum':'#76448A','Milestone':'#5D4037',
-  'NIC':'#1B4F72','Oxford Road':'#145A32','Rendever':'#5B2C6F',
-  'Sodalis Senior Living':'#BA4A00','Sona Senior Living':'#117A65',
-  'Sunrise':'#B9770E','Transforming Age':'#1A237E','Trustwell Living':'#311B92',
-  'Watermark':'#880E4F','Wyld':'#1B5E20','GKV US':'#4A148C',
+  'Accushield':'#A75075',
+  'Anthem':'#31EB0B',
+  'Asbury Communities':'#58C6FF',
+  'Atlas':'#515309',
+  'Avanti':'#FDAA39',
+  'Bickford SL':'#08528F',
+  'CCL':'#ECBAFE',
+  'Choice Digital':'#9E4306',
+  'Compass Group':'#079D87',
+  'Full Life Care':'#FE8980',
+  'GKV':'#7B7EFA',
+  'HumanGood':'#7D951E',
+  'KARE':'#EF1CF6',
+  'Lenity Management':'#5A17DD',
+  'Lifespace':'#A27400',
+  'LTC Properties Inc':'#0C6C42',
+  'Markentum':'#4DE0DE',
+  'Milestone':'#E4CD19',
+  'NIC':'#0084BF',
+  'Oxford Road':'#F80A0C',
+  'Rendever':'#86CB92',
+  'Sodalis Senior Living':'#A00E31',
+  'Sona Senior Living':'#D581AF',
+  'Sunrise':'#98007E',
+  'Transforming Age':'#F84975',
+  'Trustwell Living':'#D27310',
+  'Watermark':'#4E7823',
+  'Wyld':'#5869AD',
+  'GKV US':'#00E7B3',
 };
 const COMPANY_NAMES=Object.keys(COMPANIES).sort();
 
@@ -74,7 +93,13 @@ let S={
 };
 
 // ── Storage ────────────────────────────────────────────────
-function loadBk(){try{S.bookings=JSON.parse(localStorage.getItem('mzsp_bk')||'{}');}catch(e){S.bookings={};}}
+function loadBk(){
+  try{S.bookings=JSON.parse(localStorage.getItem('mzsp_bk')||'{}');}catch(e){S.bookings={};}
+  // Alinear reservas guardadas con la paleta vigente de empresas
+  Object.values(S.bookings).forEach(dk=>Object.entries(dk).forEach(([id,v])=>{
+    (id==='CONF'?v:[v]).forEach(bk=>{if(bk&&COMPANIES[bk.company])bk.color=COMPANIES[bk.company];});
+  }));
+}
 function saveBk(){localStorage.setItem('mzsp_bk',JSON.stringify(S.bookings));}
 function loadSes(){
   try{
@@ -136,6 +161,7 @@ function deskStatus(id){const bk=getSlot(S.selDate,id);if(!bk)return'free';if(S.
 function initials(n){if(!n)return'?';const p=n.trim().split(/\s+/);return p.length===1?p[0][0].toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase();}
 function hexToRgba(hex,a=0.18){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
 function coColor(name){return COMPANIES[name]||'#378ADD';}
+function txtOn(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return (0.299*r+0.587*g+0.114*b)>150?'#111C2E':'#fff';}
 
 // ── Swatch ─────────────────────────────────────────────────
 function updateSwatchColor(){
@@ -194,7 +220,7 @@ function mkDesk(id,iconFn,nonBookable=false){
   const timeStr=bk?(bk.allDay?'All Day':`${fmtT(bk.startTime)}–${fmtT(bk.endTime)}`):'';
   const tip=nonBookable?'Not available':bk?`${bk.name} · ${timeStr}`:isSel?`Selected · ${S.allDay?'All Day':fmtT(S.startTime)+'–'+fmtT(S.endTime)}`:locked?'Not available yet':past?'Past date':'Available — click to select';
   el.innerHTML=`${iconFn(iconColor)}<span class="desk-id">${shortId}</span><div class="desk-tip">${tip}</div>`;
-  if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');badge.className='desk-badge';badge.style.background=iconColor;badge.textContent=initials(bk.name);el.appendChild(badge);}
+  if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');badge.className='desk-badge';badge.style.background=iconColor;badge.style.color=txtOn(iconColor);badge.textContent=initials(bk.name);el.appendChild(badge);}
   if(!nonBookable&&!locked&&!past){
     if(st==='taken'||st==='mine')el.addEventListener('click',()=>onOccupied(id,bk));
     else el.addEventListener('click',()=>onDesk(id));
@@ -646,7 +672,7 @@ function renderTL() {
     const l = tPct(tF(bk.startTime)), w = tPct(tF(bk.endTime)) - l;
     const c = bk.color || '#888';
     trackHtml += `<div class="tl-bk" style="left: ${l}%; width: ${w}%; background: ${c}; opacity: .85">
-      <span style="color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px">${initials(bk.name)} ${bk.company || ''}</span></div>`;
+      <span style="color: ${txtOn(c)}; font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px">${initials(bk.name)} ${bk.company || ''}</span></div>`;
   });
 
   if (CONF.selStart !== null && CONF.selEnd !== null) {
@@ -800,7 +826,10 @@ function checkPin(){
   else{const e=document.getElementById('pinErr');if(e){e.textContent='Incorrect PIN.';e.style.display='block';}const i=document.getElementById('pinInput');if(i){i.value='';i.focus();}}
 }
 function initAdmin(){
-  loadBk();renderAdmStats();renderRowOcc();renderAdmTable();renderConfTable();
+  loadBk();renderAdmStats();renderRowOcc();renderReport();renderAdmTable();renderConfTable();
+  document.getElementById('repMonth')?.addEventListener('change',renderReport);
+  document.getElementById('btnRepCsv')?.addEventListener('click',reportCsv);
+  document.getElementById('btnRepPrint')?.addEventListener('click',()=>window.print());
   document.getElementById('fsearch')?.addEventListener('input',admFilter);
   document.getElementById('fdate')?.addEventListener('change',admFilter);
   document.getElementById('fcompany')?.addEventListener('change',admFilter);
@@ -875,7 +904,7 @@ function admCancelUser(d,enc){
   if(!confirm(`Delete ${count} reservation${count>1?'s':''} for ${name} on ${fmtMed(d)}?`))return;
   delUserDay(d,email);
   toast(`Deleted ${count} reservation${count>1?'s':''}`,'info');
-  renderAdmStats();renderRowOcc();admFilter();renderConfTable();
+  renderAdmStats();renderRowOcc();renderReport();admFilter();renderConfTable();
 }
 function renderConfTable(){
   const tb=document.getElementById('confTbody');if(!tb)return;
@@ -896,7 +925,75 @@ function renderConfTable(){
     tb.appendChild(tr);
   });
 }
-function admDelConf(d,ts){if(!confirm('Cancel this conference room booking?'))return;delConf(d,Number(ts));toast('Conference booking cancelled','info');renderAdmStats();renderRowOcc();renderConfTable();}
+function admDelConf(d,ts){if(!confirm('Cancel this conference room booking?'))return;delConf(d,Number(ts));toast('Conference booking cancelled','info');renderAdmStats();renderRowOcc();renderReport();renderConfTable();}
+
+// ══════════════════════════════════════════════════════════
+//   MONTHLY REPORT
+// ══════════════════════════════════════════════════════════
+function bkHours(bk){return bk.allDay?T_SPAN:Math.max(0,tF(bk.endTime)-tF(bk.startTime));}
+function workDaysIn(y,m){let n=0;const t=new Date(y,m+1,0).getDate();for(let d=1;d<=t;d++){const w=new Date(y,m,d).getDay();if(w>0&&w<6)n++;}return n;}
+function reportData(ym){
+  const [y,mo]=ym.split('-').map(Number),pre=ym+'-';
+  const desks=[],conf=[];
+  Object.entries(S.bookings).forEach(([d,dk])=>{
+    if(!d.startsWith(pre))return;
+    Object.entries(dk).forEach(([id,v])=>{
+      if(id==='CONF')v.forEach(b=>conf.push({d,...b}));
+      else desks.push({d,id,...v});
+    });
+  });
+  const wd=workDaysIn(y,mo-1),cap=wd*TOTAL_DESKS;
+  const byCo={},byDay={},byRow={};
+  desks.forEach(r=>{
+    const hrs=bkHours(r),co=r.company||'—';
+    (byCo[co]=byCo[co]||{co,desks:0,hours:0,users:new Set(),conf:0,confH:0});byCo[co].desks++;byCo[co].hours+=hrs;byCo[co].users.add(r.email);
+    (byDay[r.d]=byDay[r.d]||{d:r.d,desks:0,hours:0});byDay[r.d].desks++;byDay[r.d].hours+=hrs;
+    const rl=rowLabel(r.id);(byRow[rl]=byRow[rl]||{row:rl,desks:0,hours:0});byRow[rl].desks++;byRow[rl].hours+=hrs;
+  });
+  conf.forEach(c=>{const co=c.company||'—';(byCo[co]=byCo[co]||{co,desks:0,hours:0,users:new Set(),conf:0,confH:0});byCo[co].conf++;byCo[co].confH+=bkHours({allDay:false,startTime:c.startTime,endTime:c.endTime});byCo[co].users.add(c.email);});
+  return {ym,desks,conf,wd,cap,byCo:Object.values(byCo).sort((a,b)=>b.desks-a.desks||b.conf-a.conf||a.co.localeCompare(b.co)),
+    byDay:Object.values(byDay).sort((a,b)=>a.d.localeCompare(b.d)),byRow:Object.values(byRow).sort((a,b)=>a.row.localeCompare(b.row)),
+    users:new Set([...desks,...conf].map(r=>r.email)).size,
+    deskHours:desks.reduce((s,r)=>s+bkHours(r),0),confHours:conf.reduce((s,r)=>s+bkHours({allDay:false,startTime:r.startTime,endTime:r.endTime}),0)};
+}
+function fmtH(h){return (Math.round(h*10)/10).toString();}
+function renderReport(){
+  const inp=document.getElementById('repMonth'),box=document.getElementById('repBody');if(!inp||!box)return;
+  if(!inp.value){const n=new Date();inp.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+  const R=reportData(inp.value),[y,mo]=inp.value.split('-').map(Number);
+  const occ=R.cap?Math.round(R.desks.length/R.cap*1000)/10:0;
+  const peak=R.byDay.slice().sort((a,b)=>b.desks-a.desks)[0];
+  const kpi=(v,l)=>`<div class="rep-kpi"><b>${v}</b><span>${l}</span></div>`;
+  let html=`<div style="font-size:12px;color:var(--gray-600);margin-bottom:10px"><b>${MONTH[mo-1]} ${y}</b> &middot; ${R.wd} working days &middot; capacity ${R.cap} desk-days</div>
+  <div class="rep-kpis">
+    ${kpi(R.desks.length,'Desk reservations')}
+    ${kpi(occ+'%','Average occupancy (Mon-Fri)')}
+    ${kpi(fmtH(R.deskHours),'Desk hours booked')}
+    ${kpi(R.users,'Unique users')}
+    ${kpi(peak?fmtShort(peak.d)+' ('+peak.desks+')':'—','Busiest day')}
+    ${kpi(R.conf.length+' / '+fmtH(R.confHours)+' h','Conference room bookings / hours')}
+  </div>`;
+  if(!R.desks.length&&!R.conf.length){box.innerHTML=html+'<div class="tbl-empty">No reservations in this month</div>';return;}
+  const tbl=(head,rows)=>`<table class="rep-tbl"><thead><tr>${head.map((h,i)=>`<th class="${i?'n':''}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'n':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const coRows=R.byCo.map(c=>{const col=coColor(c.co);return [`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px"></span>${x(c.co)}`,c.desks,fmtH(c.hours),c.users.size,c.conf];});
+  const dayRows=R.byDay.map(d=>[fmtShort(d.d),d.desks,Math.round(d.desks/TOTAL_DESKS*100)+'%',fmtH(d.hours)]);
+  const rowRows=R.byRow.map(r=>[r.row,r.desks,fmtH(r.hours)]);
+  html+=`<div class="rep-grid">
+    <div><div class="rep-h">By company</div>${tbl(['Company','Desk-days','Hours','Users','Conf.'],coRows)}</div>
+    <div><div class="rep-h">By day</div>${tbl(['Day','Desks','Occupancy','Hours'],dayRows)}</div>
+    <div><div class="rep-h">By row</div>${tbl(['Row','Desk-days','Hours'],rowRows)}</div>
+  </div>`;
+  box.innerHTML=html;
+}
+function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function reportCsv(){
+  const ym=document.getElementById('repMonth')?.value;if(!ym)return;
+  const R=reportData(ym),rows=[['Type','Date','Desk','Name','Email','Company','Start','End','Hours']];
+  R.desks.sort((a,b)=>a.d.localeCompare(b.d)||a.id.localeCompare(b.id)).forEach(r=>rows.push(['Desk',r.d,r.id,r.name,r.email,r.company,r.allDay?'07:00':r.startTime,r.allDay?'18:00':r.endTime,fmtH(bkHours(r))]));
+  R.conf.sort((a,b)=>a.d.localeCompare(b.d)||tF(a.startTime)-tF(b.startTime)).forEach(r=>rows.push(['Conference',r.d,'CONF',r.name,r.email,r.company,r.startTime,r.endTime,fmtH(bkHours({allDay:false,startTime:r.startTime,endTime:r.endTime}))]));
+  const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MezSpace_report_${ym}.csv`;document.body.appendChild(a);a.click();a.remove();
+}
 function x(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ── Boot ──────────────────────────────────────────────────
