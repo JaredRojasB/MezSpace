@@ -219,9 +219,15 @@ function onEndChange(){
 }
 
 // ── SVG icons ──────────────────────────────────────────────
-function dualH(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 56 22" fill="none"><rect x="1" y="1" width="24" height="14" rx="1.5" stroke="${c}" stroke-width="1.5"/><path d="M8 19h10M13 15v4" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/><rect x="31" y="1" width="24" height="14" rx="1.5" stroke="${c}" stroke-width="1.5"/><path d="M38 19h10M43 15v4" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/></svg></div>`;}
-function dualV(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 26 48" fill="none"><rect x="1" y="1" width="24" height="20" rx="1.5" stroke="${c}" stroke-width="1.5"/><path d="M8 25h10M13 21v4" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/><rect x="1" y="28" width="24" height="20" rx="1.5" stroke="${c}" stroke-width="1.5"/><path d="M8 52h10M13 48v4" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/></svg></div>`;}
-function singleH(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="16" rx="1.5" stroke="${c}" stroke-width="1.5"/><path d="M10 20h12M16 17v3" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/></svg></div>`;}
+// Monitor icons (SVG, non-scaling strokes: crisp at any size, all modern browsers)
+function monSVG(x,y,c,w=24){const h=w*0.62,sx=x,sy=y;return `
+  <rect x="${sx+1}" y="${sy+1}" width="${w-2}" height="${h}" rx="2.2" fill="${c}" fill-opacity=".10" stroke="${c}" stroke-width="1.4" vector-effect="non-scaling-stroke"/>
+  <rect x="${sx+3}" y="${sy+3}" width="${w-6}" height="${h-4}" rx="1" fill="${c}" fill-opacity=".14"/>
+  <path d="M${sx+w/2-1.6} ${sy+h+1} L${sx+w/2-2.2} ${sy+h+4.2} H${sx+w/2+2.2} L${sx+w/2+1.6} ${sy+h+1}" fill="${c}" fill-opacity=".35" stroke="${c}" stroke-width="1.1" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  <path d="M${sx+w/2-5.5} ${sy+h+4.6} H${sx+w/2+5.5}" stroke="${c}" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;}
+function dualH(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 54 22" fill="none" preserveAspectRatio="xMidYMid meet">${monSVG(1,0.5,c)}${monSVG(29,0.5,c)}</svg></div>`;}
+function dualV(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 26 46" fill="none" preserveAspectRatio="xMidYMid meet">${monSVG(1,0.5,c)}${monSVG(1,23.5,c)}</svg></div>`;}
+function singleH(c='currentColor'){return `<div class="desk-icon"><svg viewBox="0 0 26 22" fill="none" preserveAspectRatio="xMidYMid meet">${monSVG(1,0.5,c)}</svg></div>`;}
 const ADM_MON=`<svg viewBox="0 0 24 18" fill="none" style="width:12px;height:auto"><rect x="1" y="1" width="22" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 17h12M12 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 
 // ── Build desk ─────────────────────────────────────────────
@@ -241,8 +247,18 @@ function mkDesk(id,iconFn,nonBookable=false){
   const shortId=id.split('-').slice(1).join('');
   const timeStr=bk?(bk.allDay?'All Day':`${fmtT(bk.startTime)}–${fmtT(bk.endTime)}`):'';
   const tip=nonBookable?'Not available':bk?`${bk.name} · ${timeStr}`:isSel?`Selected · ${S.allDay?'All Day':fmtT(S.startTime)+'–'+fmtT(S.endTime)}`:locked?'Not available yet':past?'Past date':'Available — click to select';
-  el.innerHTML=`${iconFn(iconColor)}<span class="desk-id">${shortId}</span><div class="desk-tip">${tip}</div>`;
-  if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');const lg=coLogo(bk.company);if(lg){badge.className='desk-badge desk-logo';badge.style.borderColor=iconColor;badge.innerHTML=`<img src="${lg}" alt="">`;}else{badge.className='desk-badge';badge.style.background=iconColor;badge.style.color=txtOn(iconColor);badge.textContent=initials(bk.name);}el.appendChild(badge);}
+  // Company logo fills the whole desk when booked (or selected by a user whose company has a logo)
+  const fillCo=nonBookable?'':(bk&&!isSel?bk.company:(isSel?co:''));
+  const fillLogo=fillCo?coLogo(fillCo):null;
+  if(fillLogo){
+    el.classList.add('has-logo');if(isSel)el.classList.add('logo-sel');
+    el.style.background='#fff';
+    el.innerHTML=`<div class="desk-logo-fill" role="img" aria-label="${x(fillCo)}" style="background-image:url('${fillLogo}')"></div><span class="desk-id">${shortId}</span><div class="desk-tip">${tip}</div>`;
+    if(isSel){const ck=document.createElement('div');ck.className='desk-check';ck.style.background=selColor;ck.innerHTML='<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2l2.2 2.2 4.8-4.9" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';el.appendChild(ck);}
+  }else{
+    el.innerHTML=`${iconFn(iconColor)}<span class="desk-id">${shortId}</span><div class="desk-tip">${tip}</div>`;
+    if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');badge.className='desk-badge';badge.style.background=iconColor;badge.style.color=txtOn(iconColor);badge.textContent=initials(bk.name);el.appendChild(badge);}
+  }
   if(!nonBookable&&!locked&&!past){
     if(st==='taken'||st==='mine')el.addEventListener('click',()=>onOccupied(id,bk));
     else el.addEventListener('click',()=>onDesk(id));
@@ -280,7 +296,7 @@ function renderFloor(){
   }
 
   const confBadge=confBks.length
-    ? `<div style="display:flex;gap:2px;margin-bottom:2px">${confBks.map(b=>coLogo(b.company)?logoImg(b.company,14,b.color):`<span style="width:7px;height:7px;border-radius:50%;background:${b.color||'#888'};display:inline-block"></span>`).join('')}</div><div style="font-size:7px;color:var(--orange);font-weight:700">${confBks.length} booked</div>`
+    ? `<div style="display:flex;gap:2px;margin-bottom:2px">${confBks.map(b=>coLogo(b.company)?logoImg(b.company,22,b.color):`<span style="width:7px;height:7px;border-radius:50%;background:${b.color||'#888'};display:inline-block"></span>`).join('')}</div><div style="font-size:7px;color:var(--orange);font-weight:700">${confBks.length} booked</div>`
     : isConfSelected
     ? `<div class="room-box-sub" style="color:${selColor};font-weight:700">Selected ${co ? '· '+co : ''}</div>`
     : '<div class="room-box-sub" style="color:var(--orange);font-weight:700">Click to book ▶</div>';
@@ -418,13 +434,13 @@ function renderFloor(){
     const row=document.createElement('div');row.className='sec-row';
     const tag=document.createElement('div');tag.className='row-tag';tag.textContent=sec.label;row.appendChild(tag);
     const content=document.createElement('div');content.className='sec-content';
-    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,singleH));content.appendChild(sw);}
+    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualH));content.appendChild(sw);}
     const block=document.createElement('div');block.className='sec-block';
     const rA=document.createElement('div');rA.className='desk-row';
-    for(let c=1;c<=sec.cols;c++)rA.appendChild(mkDesk(`${sec.id}-A${c}`,singleH));
+    for(let c=1;c<=sec.cols;c++)rA.appendChild(mkDesk(`${sec.id}-A${c}`,dualH));
     const sep2=document.createElement('div');sep2.className='row-sep';
     const rB=document.createElement('div');rB.className='desk-row';
-    for(let c=1;c<=sec.cols;c++)rB.appendChild(mkDesk(`${sec.id}-B${c}`,singleH));
+    for(let c=1;c<=sec.cols;c++)rB.appendChild(mkDesk(`${sec.id}-B${c}`,dualH));
     block.appendChild(rA);block.appendChild(sep2);block.appendChild(rB);
     content.appendChild(block);row.appendChild(content);rCard.appendChild(row);
   });
@@ -440,19 +456,19 @@ function renderFloor(){
     // Standalone non-bookable desk
     const sw=document.createElement('div');sw.className='standalone-wrap';
     const dS=document.createElement('div');dS.className='desk desk-ne';
-    dS.innerHTML=singleH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
+    dS.innerHTML=dualH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
     sw.appendChild(dS);content.appendChild(sw);
     // Block with top/bottom non-bookable desk
     const block=document.createElement('div');block.className='sec-block';
     block.style.background='var(--gray-50)';
     const rA=document.createElement('div');rA.className='desk-row';
     const dA=document.createElement('div');dA.className='desk desk-ne';
-    dA.innerHTML=singleH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
+    dA.innerHTML=dualH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
     rA.appendChild(dA);
     const sep2=document.createElement('div');sep2.className='row-sep';
     const rB=document.createElement('div');rB.className='desk-row';
     const dB=document.createElement('div');dB.className='desk desk-ne';
-    dB.innerHTML=singleH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
+    dB.innerHTML=dualH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
     rB.appendChild(dB);
     block.appendChild(rA);block.appendChild(sep2);block.appendChild(rB);
     content.appendChild(block);row.appendChild(content);rCard.appendChild(row);

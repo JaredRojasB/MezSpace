@@ -152,8 +152,8 @@ button,input,select{font-family:var(--font)}
 /* DESK */
 .desk{flex:1;min-width:0;min-height:0;border:1.5px solid var(--gray-300);border-radius:var(--r);background:var(--white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .13s ease;position:relative;user-select:none;overflow:hidden}
 .desk:hover:not(.occupied):not(.desk-ne):not(.locked-date){background:var(--gray-100);border-color:var(--gray-400);transform:translateY(-2px);box-shadow:var(--sh)}
-.desk-icon{flex:1 1 0;min-height:0;overflow:hidden;width:100%;display:flex;align-items:center;justify-content:center;padding:6% 9% 0}
-.desk-icon svg{width:100%;height:100%;max-width:56px;max-height:36px;display:block}
+.desk-icon{flex:1 1 0;min-height:0;overflow:hidden;width:100%;display:flex;align-items:center;justify-content:center;padding:4% 9% 0}
+.desk-icon svg{width:100%;height:100%;max-width:64px;max-height:40px;display:block;overflow:visible}
 .desk-id{font-size:clamp(8px,.7vw,10px);font-weight:700;color:var(--gray-500,#6B7A90);letter-spacing:.2px;padding:1px 0 4px;flex:0 0 auto;line-height:1.1;white-space:nowrap}
 .desk-badge{position:absolute;top:3px;right:4px;width:clamp(15px,1.7vw,21px);height:clamp(15px,1.7vw,21px);border-radius:50%;color:#fff;font-size:clamp(6.5px,.7vw,8.5px);font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.22)}
 .desk.locked-date{opacity:.4;cursor:not-allowed}
@@ -432,3 +432,10 @@ button,input,select{font-family:var(--font)}
 .demo-form-note{font-size:10px;line-height:1.45;color:#A8673A;background:#FFF7ED;border:1px dashed #F6C9A3;border-radius:6px;padding:6px 8px;margin:-2px 0 10px}
 .desk-badge.desk-logo{background:#fff;border:2px solid;width:clamp(20px,2.3vw,28px);height:clamp(20px,2.3vw,28px);padding:1px;overflow:hidden}
 .desk-badge.desk-logo img{width:100%;height:100%;object-fit:contain;border-radius:50%;display:block}
+.desk.has-logo{border-width:2px}
+.desk.has-logo.logo-sel{border-style:dashed;border-width:2.5px}
+.desk-logo-fill{position:absolute;inset:5px 8px 5px 8px;background-repeat:no-repeat;background-position:center;background-size:contain}
+.desk.has-logo .desk-id{position:absolute;left:4px;bottom:3px;padding:1px 4px;border-radius:4px;background:rgba(255,255,255,.88);font-size:clamp(7px,.6vw,9px);z-index:1}
+.desk.has-logo .desk-id{color:var(--gray-800)}
+.desk-check{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none}
+.desk-check svg{width:11px;height:11px}
