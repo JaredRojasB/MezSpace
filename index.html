@@ -14,12 +14,26 @@
     <div class="logo-text"><span class="logo-name">MezSpace</span><span class="logo-sub">Desk Reservation</span></div>
   </div>
   <!-- Admin panel accessible at /admin.html (not publicly linked) -->
+  <div class="hdr-actions">
+    <button class="btn-cal" id="btnCal" aria-haspopup="dialog" aria-expanded="false" title="Calendar">
+      <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/></svg>
+      <span>Calendar</span>
+    </button>
+    <div class="cal-pop" id="calPop" role="dialog" aria-label="Calendar">
+      <div class="cal-header">
+        <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">&#8249;</button>
+        <span class="cal-month-lbl" id="calMonthLbl">—</span>
+        <button class="cal-nav-btn" id="calNext" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="cal-wrap"><div class="cal-grid" id="calGrid"></div></div>
+      <div class="cal-pop-note">Orange dot = your reservations · Next week opens Saturday</div>
+    </div>
+  </div>
 </header>
 
-<div class="demo-banner">
+<div class="demo-banner" title="Versión demo: los datos solo se guardan en este navegador; la versión final usará los datos reales de Meztal.">
   <span class="demo-tag">DEMO</span>
-  <span><b>Demo version.</b> This shows how the final system works. Names, emails, companies and logos entered here are saved only in this browser. The final version will use Meztal&rsquo;s real data. Try the sample email <b>ana.lopez@atlas-demo.com</b>.</span>
-  <span class="demo-es">Versión demo: los datos solo se guardan en este navegador; la versión final usará los datos reales de Meztal.</span>
+  <span class="demo-txt">Data entered here is saved only in this browser · Los datos solo se guardan en este navegador · Sample email: <b>ana.lopez@atlas-demo.com</b></span>
 </div>
 
 <div class="occ-bar">
@@ -80,7 +94,7 @@
             <select class="f-select" id="userCompany"></select>
           </div>
         </div>
-        <div class="demo-form-note">Demo: your name, email and company are saved only in this browser.<br>Demo: tu nombre, correo y empresa solo se guardan en este navegador.</div>
+        <div class="demo-form-note">Demo: saved only in this browser · Solo se guarda en este navegador</div>
         <!-- Time picker -->
         <div class="f-group" style="margin-bottom:0">
           <label class="f-label">Booking Hours</label>
@@ -111,20 +125,11 @@
     </div>
 
     <!-- My bookings -->
-    <div class="p-card">
+    <div class="p-card my-card">
       <div class="p-head"><div class="p-title">Your Reservations</div><div class="p-sub">Active bookings for your email</div></div>
       <div class="p-body" style="padding:6px 13px 10px"><div class="bk-list" id="myBkList"><div class="bk-empty">Enter your email to see your reservations</div></div></div>
     </div>
 
-    <!-- Calendar -->
-    <div class="p-card" style="flex-shrink:0">
-      <div class="cal-header">
-        <button class="cal-nav-btn" id="calPrev">&#8249;</button>
-        <span class="cal-month-lbl" id="calMonthLbl">—</span>
-        <button class="cal-nav-btn" id="calNext">&#8250;</button>
-      </div>
-      <div class="cal-wrap"><div class="cal-grid" id="calGrid"></div></div>
-    </div>
   </div>
 </div>
 

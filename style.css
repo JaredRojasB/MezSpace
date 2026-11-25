@@ -439,3 +439,39 @@ button,input,select{font-family:var(--font)}
 .desk.has-logo .desk-id{color:var(--gray-800)}
 .desk-check{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none}
 .desk-check svg{width:11px;height:11px}
+
+/* ── v9: window strip, header calendar, compact layout ── */
+.rows-wrap{flex:4 1 0;min-height:0;display:flex;gap:clamp(4px,.5vw,8px)}
+.rows-col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:clamp(5px,.6vh,8px)}
+.window-strip{flex-shrink:0;width:clamp(16px,1.6vw,22px);border-radius:5px;border:1px solid var(--gray-200);
+  background:repeating-linear-gradient(180deg,#EEF2F7 0 22px,#E3E9F1 22px 23px);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px #F8FAFC}
+.window-strip span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(6.5px,.62vw,8.5px);font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray-400)}
+.demo-banner{flex-wrap:nowrap;padding-top:4px;padding-bottom:4px}
+.demo-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hdr-actions{position:relative;display:flex;align-items:center;gap:8px}
+.btn-cal{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);padding:6px 12px;border-radius:var(--r);font:600 11.5px var(--font);cursor:pointer;transition:all .15s}
+.btn-cal:hover,.btn-cal.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.cal-pop{position:absolute;top:calc(100% + 10px);right:0;width:272px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-lg);box-shadow:0 14px 40px rgba(17,28,46,.22);
+  opacity:0;visibility:hidden;transform:translateY(-8px) scale(.97);transform-origin:top right;transition:opacity .18s ease,transform .2s ease,visibility 0s linear .2s;z-index:400}
+.cal-pop.open{opacity:1;visibility:visible;transform:none;transition:opacity .18s ease,transform .2s ease,visibility 0s}
+.cal-pop::before{content:'';position:absolute;top:-6px;right:22px;width:10px;height:10px;background:var(--white);border-left:1px solid var(--gray-200);border-top:1px solid var(--gray-200);transform:rotate(45deg)}
+.cal-pop-note{font-size:9.5px;color:var(--gray-400);padding:0 12px 10px;text-align:center}
+.cal-pop .cal-cell{height:30px}
+@media (prefers-reduced-motion:reduce){.cal-pop,.cal-pop.open{transition:none}}
+
+/* side panel always fits the viewport: form scrolls inside, button and reservations stay visible */
+.side-panel{overflow:hidden}
+.p-card.form-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.p-card.form-card .p-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.p-card.form-card .sel-list{max-height:none}
+.p-card.my-card{flex:0 1 auto;min-height:74px;display:flex;flex-direction:column}
+.p-card.my-card .p-body{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.p-card.my-card .bk-list{max-height:none;overflow:visible}
+.demo-form-note{margin:0 0 8px;padding:4px 8px}
+@media (max-height:760px){.f-group{margin-bottom:6px}.p-head{padding:6px 13px 5px}.p-sub{display:none}}
+/* short screens: monitor icon and label side by side so the icon never disappears */
+@media (max-height:720px){
+  .desk-row .desk{flex-direction:row;gap:clamp(4px,.5vw,8px)}
+  .desk-row .desk .desk-icon{flex:0 0 auto;width:clamp(28px,3vw,44px);height:70%;padding:0}
+  .desk-row .desk .desk-id{padding:0}
+}

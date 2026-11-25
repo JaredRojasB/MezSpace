@@ -99,6 +99,20 @@ const ADM_SECS=[
 ];
 const TOTAL_DESKS=36;
 
+// Display labels: R{row}D{n}, numbered 1..N within each row
+// in visual order: top line left to right, then bottom line; the single desk where it sits in the row.
+// Internal IDs (F1-A1, F3-S...) stay the same so saved reservations keep working.
+const DESK_LABELS=(()=>{const m={};
+  const add=(sec,sFirst)=>{const r=sec.id.slice(1);let n=0;
+    if(sec.standalone&&sFirst)m[`${sec.id}-S`]=`R${r}D${++n}`;
+    for(let c=1;c<=sec.cols;c++)m[`${sec.id}-A${c}`]=`R${r}D${++n}`;
+    for(let c=1;c<=sec.cols;c++)m[`${sec.id}-B${c}`]=`R${r}D${++n}`;
+    if(sec.standalone&&!sFirst)m[`${sec.id}-S`]=`R${r}D${++n}`;};
+  LEFT_SECS.forEach(sec=>add(sec,false));   // rows 1-4: single desk at the right end
+  RIGHT_SECS.forEach(sec=>add(sec,true));   // rows 5-6: single desk on the left
+  return m;})();
+function deskLabel(id){return id==='CONF'?'Conference Room':(DESK_LABELS[id]||id);}
+
 // ── Locale ─────────────────────────────────────────────────
 const DAY_S=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DAY_F=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -244,7 +258,7 @@ function mkDesk(id,iconFn,nonBookable=false){
   let iconColor='#8898B0';
   if(!nonBookable&&bk){iconColor=bk.color||'#8898B0';el.style.background=hexToRgba(iconColor,0.18);el.style.borderColor=iconColor;el.style.borderWidth='2px';}
   else if(isSel){iconColor=selColor;el.style.background=hexToRgba(selColor,0.22);el.style.borderColor=selColor;el.style.borderWidth='2.5px';}
-  const shortId=id.split('-').slice(1).join('');
+  const shortId=deskLabel(id);
   const timeStr=bk?(bk.allDay?'All Day':`${fmtT(bk.startTime)}–${fmtT(bk.endTime)}`):'';
   const tip=nonBookable?'Not available':bk?`${bk.name} · ${timeStr}`:isSel?`Selected · ${S.allDay?'All Day':fmtT(S.startTime)+'–'+fmtT(S.endTime)}`:locked?'Not available yet':past?'Past date':'Available — click to select';
   // Company logo fills the whole desk when booked (or selected by a user whose company has a logo)
@@ -374,11 +388,15 @@ function renderFloor(){
     confEl.addEventListener('click', () => openConf(S.selDate));
   }
 
+  // Rows 1-4 sit next to the window: wrap them with a vertical "VENTANA" strip
+  const rowsWrap=document.createElement('div');rowsWrap.className='rows-wrap';
+  const win=document.createElement('div');win.className='window-strip';win.innerHTML='<span>Ventana</span>';
+  rowsWrap.appendChild(win);
+  const rowsCol=document.createElement('div');rowsCol.className='rows-col';rowsWrap.appendChild(rowsCol);
   LEFT_SECS.forEach(sec=>{
     const row=document.createElement('div');row.className='sec-row';
     const tag=document.createElement('div');tag.className='row-tag';tag.textContent=sec.label;row.appendChild(tag);
     const content=document.createElement('div');content.className='sec-content';
-    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualV));content.appendChild(sw);}
     const block=document.createElement('div');block.className='sec-block';
     const rA=document.createElement('div');rA.className='desk-row';
     for(let c=1;c<=sec.cols;c++)rA.appendChild(mkDesk(`${sec.id}-A${c}`,dualH));
@@ -386,8 +404,12 @@ function renderFloor(){
     const rB=document.createElement('div');rB.className='desk-row';
     for(let c=1;c<=sec.cols;c++)rB.appendChild(mkDesk(`${sec.id}-B${c}`,dualH));
     block.appendChild(rA);block.appendChild(sep);block.appendChild(rB);
-    content.appendChild(block);row.appendChild(content);lCard.appendChild(row);
+    content.appendChild(block);
+    // Single desk goes at the right end of the row
+    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualH));content.appendChild(sw);}
+    row.appendChild(content);rowsCol.appendChild(row);
   });
+  lCard.appendChild(rowsWrap);
   const mzL=document.createElement('div');mzL.className='meztal-zone';mzL.id='cemZone';
   mzL.innerHTML=`<div class="mz-desk-mini"></div><div class="mz-desk-mini"></div>
     <div class="meztal-zone-lbl" style="cursor:default">Community Experience Manager</div>
@@ -480,7 +502,7 @@ function onDesk(id){const i=S.selDesks.indexOf(id);if(i>=0)S.selDesks.splice(i,1
 function onOccupied(id,bk){if(!bk)return;const me=S.email||document.getElementById('userEmail')?.value.trim();if(bk.email===me)openModal(S.selDate,id,bk.name);else toast(`Occupied — ${bk.name}${bk.company?' ('+bk.company+')':''}${bk.allDay?'':', '+fmtT(bk.startTime)+'–'+fmtT(bk.endTime)}`,'info');}
 
 // ── Cancel modal ───────────────────────────────────────────
-function openModal(date,id,name){S.pendingCancel={date,id};const m=document.getElementById('cancelModal'),b=document.getElementById('modalBody');if(!m||!b)return;b.innerHTML=`Cancel <strong>${id}</strong> for <strong>${fmtMed(date)}</strong>?`;m.classList.remove('hidden');}
+function openModal(date,id,name){S.pendingCancel={date,id};const m=document.getElementById('cancelModal'),b=document.getElementById('modalBody');if(!m||!b)return;b.innerHTML=`Cancel <strong>${deskLabel(id)}</strong> for <strong>${fmtMed(date)}</strong>?`;m.classList.remove('hidden');}
 function closeModal(){S.pendingCancel=null;document.getElementById('cancelModal')?.classList.add('hidden');}
 function doCancel(){if(!S.pendingCancel)return;const{date,id}=S.pendingCancel;delBk(date,id);closeModal();toast('Reservation cancelled','info');renderFloor();renderWeekBar();renderSelList();renderMyBk();renderCalendar();updateOcc();}
 
@@ -516,7 +538,7 @@ function renderWeekBar(){
   if(prev)prev.disabled=S.wkOffset<=0;
   if(next)next.disabled=S.wkOffset>=1||!nextWkUnlocked();
 }
-function selectDate(d){S.selDate=d;S.selDesks=[];const nw=weekDates(1);if(nw.includes(d)&&nextWkUnlocked())S.wkOffset=1;else S.wkOffset=0;renderWeekBar();renderFloor();renderSelList();updateOcc();renderCalendar();}
+function selectDate(d){closeCalPop();S.selDate=d;S.selDesks=[];const nw=weekDates(1);if(nw.includes(d)&&nextWkUnlocked())S.wkOffset=1;else S.wkOffset=0;renderWeekBar();renderFloor();renderSelList();updateOcc();renderCalendar();}
 
 // ── Calendar ───────────────────────────────────────────────
 function renderCalendar(){
@@ -556,7 +578,7 @@ function renderSelList(){
   }else{
     S.selDesks.forEach(id=>{
       const el=document.createElement('div');el.className='sel-item';
-      const labelText = id === 'CONF' ? 'Conference Room' : id;
+      const labelText = deskLabel(id);
       el.style.background=hexToRgba(c,.13);el.style.border=`1px solid ${hexToRgba(c,.4)}`;
       el.innerHTML=`<span class="sel-item-id" style="color:${c}">${labelText}</span>
         <span class="sel-time-tag">${timeTag}</span>
@@ -628,7 +650,7 @@ function renderMyBk(){
     const color=bk.color||'#378ADD';
     const timeStr=bk.allDay?'All Day':`${fmtT(bk.startTime)}–${fmtT(bk.endTime)}`;
     item.innerHTML=`<div class="bk-dot" style="background:${color}"></div>
-      <div class="bk-info"><div class="bk-desk">${bk.id}</div>
+      <div class="bk-info"><div class="bk-desk">${deskLabel(bk.id)}</div>
       <div class="bk-meta">${fmtShort(bk.d)} · ${timeStr}</div></div>
       <button class="btn-cancel-bk" onclick="triggerCancel('${bk.d}','${bk.id}')">Cancel</button>`;
     c.appendChild(item);
@@ -840,6 +862,11 @@ function checkEmailStatus(){
   }
 }
 
+// ── Calendar popover (header button) ───────────────────────
+function openCalPop(){const p=document.getElementById('calPop'),b=document.getElementById('btnCal');if(!p)return;renderCalendar();p.classList.add('open');b?.classList.add('active');b?.setAttribute('aria-expanded','true');}
+function closeCalPop(){const p=document.getElementById('calPop'),b=document.getElementById('btnCal');if(!p)return;p.classList.remove('open');b?.classList.remove('active');b?.setAttribute('aria-expanded','false');}
+function toggleCalPop(e){e?.stopPropagation();document.getElementById('calPop')?.classList.contains('open')?closeCalPop():openCalPop();}
+
 // ── Employee init ──────────────────────────────────────────
 function initEmployee(){
   const sel=document.getElementById('userCompany');
@@ -865,6 +892,10 @@ function initEmployee(){
   document.getElementById('cancelNo')?.addEventListener('click',closeModal);
   document.getElementById('cancelYes')?.addEventListener('click',doCancel);
   document.getElementById('cancelModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  document.getElementById('btnCal')?.addEventListener('click',toggleCalPop);
+  document.getElementById('calPop')?.addEventListener('click',e=>e.stopPropagation());
+  document.addEventListener('click',closeCalPop);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCalPop();});
   document.getElementById('calPrev')?.addEventListener('click',()=>{S.calMonth--;if(S.calMonth<0){S.calMonth=11;S.calYear--;}renderCalendar();});
   document.getElementById('calNext')?.addEventListener('click',()=>{S.calMonth++;if(S.calMonth>11){S.calMonth=0;S.calYear++;}renderCalendar();});
   document.getElementById('userEmail')?.addEventListener('input',checkEmailStatus);
@@ -931,7 +962,7 @@ function renderRowOcc(){
 function rowLabel(id){const sec=id.split('-')[0];return{'F1':'Row 1','F2':'Row 2','F3':'Row 3','F4':'Row 4','F5':'Row 5','F6':'Row 6'}[sec]||sec;}
 function deskSummary(desks){
   const byRow={};
-  desks.forEach(bk=>{const lbl=rowLabel(bk.id);if(!byRow[lbl])byRow[lbl]=[];byRow[lbl].push({id:bk.id.split('-').slice(1).join(''),allDay:bk.allDay,st:bk.startTime,et:bk.endTime});});
+  desks.forEach(bk=>{const lbl=rowLabel(bk.id);if(!byRow[lbl])byRow[lbl]=[];byRow[lbl].push({id:deskLabel(bk.id),allDay:bk.allDay,st:bk.startTime,et:bk.endTime});});
   return Object.entries(byRow).map(([lbl,ds]) => {
     const timeStr=ds[0].allDay?'All Day':`${fmtT(ds[0].st)}–${fmtT(ds[0].et)}`;
     return `<b>${lbl}:</b> ${ds.map(d=>d.id).join(', ')} <span style="color:var(--orange);font-size:10px">[${timeStr}]</span>`;
@@ -1049,7 +1080,7 @@ function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace
 function reportCsv(){
   const ym=document.getElementById('repMonth')?.value;if(!ym)return;
   const R=reportData(ym),rows=[['Type','Date','Desk','Name','Email','Company','Start','End','Hours']];
-  R.desks.sort((a,b)=>a.d.localeCompare(b.d)||a.id.localeCompare(b.id)).forEach(r=>rows.push(['Desk',r.d,r.id,r.name,r.email,r.company,r.allDay?'07:00':r.startTime,r.allDay?'18:00':r.endTime,fmtH(bkHours(r))]));
+  R.desks.sort((a,b)=>a.d.localeCompare(b.d)||a.id.localeCompare(b.id)).forEach(r=>rows.push(['Desk',r.d,deskLabel(r.id),r.name,r.email,r.company,r.allDay?'07:00':r.startTime,r.allDay?'18:00':r.endTime,fmtH(bkHours(r))]));
   R.conf.sort((a,b)=>a.d.localeCompare(b.d)||tF(a.startTime)-tF(b.startTime)).forEach(r=>rows.push(['Conference',r.d,'CONF',r.name,r.email,r.company,r.startTime,r.endTime,fmtH(bkHours({allDay:false,startTime:r.startTime,endTime:r.endTime}))]));
   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MezSpace_report_${ym}.csv`;document.body.appendChild(a);a.click();a.remove();
