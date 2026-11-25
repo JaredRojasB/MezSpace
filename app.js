@@ -1,4 +1,4 @@
-/* MezSpace v7 — app.js  (Hourly booking · Conference Room timeline) */
+/* MezSpace v8 — app.js  (Hourly booking · Conference Room timeline · Authorized emails & company logos [demo]) */
 
 const ADMIN_PIN = 'meztal2024';
 
@@ -59,6 +59,28 @@ const COMPANIES={
   'GKV US':'#00E7B3',
 };
 const COMPANY_NAMES=Object.keys(COMPANIES).sort();
+
+// ── Authorized directory (DEMO: stored only in this browser) ──
+// Final version: this list lives in the cloud database and is managed from the admin panel.
+const DIR_KEY='mzsp_dir';
+const DEMO_EMAILS={'ana.lopez@atlas-demo.com':'Atlas','luis.garcia@kare-demo.com':'KARE','maria.perez@watermark-demo.com':'Watermark'};
+let DIR={logos:{},extra:{},removed:[],emails:{}};
+function loadDir(){
+  let d=null;try{d=JSON.parse(localStorage.getItem(DIR_KEY)||'null');}catch(e){}
+  if(!d)d={logos:{},extra:{},removed:[],emails:{...DEMO_EMAILS}};
+  DIR={logos:d.logos||{},extra:d.extra||{},removed:d.removed||[],emails:d.emails||{}};
+  Object.entries(DIR.extra).forEach(([n,c])=>{COMPANIES[n]=c;});
+  DIR.removed.forEach(n=>{delete COMPANIES[n];});
+  COMPANY_NAMES.length=0;COMPANY_NAMES.push(...Object.keys(COMPANIES).sort((a,b)=>a.localeCompare(b)));
+}
+function saveDir(){
+  try{localStorage.setItem(DIR_KEY,JSON.stringify(DIR));return true;}
+  catch(e){toast('Browser storage is full. Use a smaller logo image.','err');return false;}
+}
+function normEmail(e){return (e||'').trim().toLowerCase();}
+function coLogo(n){return DIR.logos[n]||null;}
+function emailCompany(e){const c=DIR.emails[normEmail(e)];return c&&COMPANIES[c]?c:null;}
+function logoImg(n,size,border){const l=coLogo(n);return l?`<img src="${l}" alt="${x(n)}" style="width:${size}px;height:${size}px;border-radius:50%;background:#fff;object-fit:contain;border:1.5px solid ${border||coColor(n)};flex-shrink:0">`:'';}
 
 // ── Floor ──────────────────────────────────────────────────
 const LEFT_SECS=[
@@ -220,7 +242,7 @@ function mkDesk(id,iconFn,nonBookable=false){
   const timeStr=bk?(bk.allDay?'All Day':`${fmtT(bk.startTime)}–${fmtT(bk.endTime)}`):'';
   const tip=nonBookable?'Not available':bk?`${bk.name} · ${timeStr}`:isSel?`Selected · ${S.allDay?'All Day':fmtT(S.startTime)+'–'+fmtT(S.endTime)}`:locked?'Not available yet':past?'Past date':'Available — click to select';
   el.innerHTML=`${iconFn(iconColor)}<span class="desk-id">${shortId}</span><div class="desk-tip">${tip}</div>`;
-  if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');badge.className='desk-badge';badge.style.background=iconColor;badge.style.color=txtOn(iconColor);badge.textContent=initials(bk.name);el.appendChild(badge);}
+  if(bk&&!nonBookable&&!isSel){const badge=document.createElement('div');const lg=coLogo(bk.company);if(lg){badge.className='desk-badge desk-logo';badge.style.borderColor=iconColor;badge.innerHTML=`<img src="${lg}" alt="">`;}else{badge.className='desk-badge';badge.style.background=iconColor;badge.style.color=txtOn(iconColor);badge.textContent=initials(bk.name);}el.appendChild(badge);}
   if(!nonBookable&&!locked&&!past){
     if(st==='taken'||st==='mine')el.addEventListener('click',()=>onOccupied(id,bk));
     else el.addEventListener('click',()=>onDesk(id));
@@ -258,7 +280,7 @@ function renderFloor(){
   }
 
   const confBadge=confBks.length
-    ? `<div style="display:flex;gap:2px;margin-bottom:2px">${confBks.map(b=>`<span style="width:7px;height:7px;border-radius:50%;background:${b.color||'#888'};display:inline-block"></span>`).join('')}</div><div style="font-size:7px;color:var(--orange);font-weight:700">${confBks.length} booked</div>`
+    ? `<div style="display:flex;gap:2px;margin-bottom:2px">${confBks.map(b=>coLogo(b.company)?logoImg(b.company,14,b.color):`<span style="width:7px;height:7px;border-radius:50%;background:${b.color||'#888'};display:inline-block"></span>`).join('')}</div><div style="font-size:7px;color:var(--orange);font-weight:700">${confBks.length} booked</div>`
     : isConfSelected
     ? `<div class="room-box-sub" style="color:${selColor};font-weight:700">Selected ${co ? '· '+co : ''}</div>`
     : '<div class="room-box-sub" style="color:var(--orange);font-weight:700">Click to book ▶</div>';
@@ -535,8 +557,12 @@ function doBook(){
   const nEl=document.getElementById('userName'),eEl=document.getElementById('userEmail'),cEl=document.getElementById('userCompany');
   const name=nEl?.value.trim()||'',email=eEl?.value.trim()||'',company=cEl?.value||'';
   if(!name){toast('Please enter your name','err');nEl?.focus();return;}
+  if(!company&&emailCompany(email)){checkEmailStatus();return doBook();}
   if(!company){toast('Please select your company','err');cEl?.focus();return;}
   if(!email||!email.includes('@')){toast('Please enter a valid email','err');eEl?.focus();return;}
+  const authCo=emailCompany(email);
+  if(!authCo){toast('This email is not on the authorized list. Ask the Meztal admin to add it (demo: list saved in this browser only).','err');eEl?.focus();checkEmailStatus();return;}
+  if(authCo!==company){toast(`This email is authorized for ${authCo}, not ${company}`,'err');checkEmailStatus();return;}
   if(!S.selDesks.length)return;
   if(!S.allDay&&tF(S.endTime)<=tF(S.startTime)){toast('End time must be after start time','err');return;}
   
@@ -672,7 +698,7 @@ function renderTL() {
     const l = tPct(tF(bk.startTime)), w = tPct(tF(bk.endTime)) - l;
     const c = bk.color || '#888';
     trackHtml += `<div class="tl-bk" style="left: ${l}%; width: ${w}%; background: ${c}; opacity: .85">
-      <span style="color: ${txtOn(c)}; font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px">${initials(bk.name)} ${bk.company || ''}</span></div>`;
+      <span style="color: ${txtOn(c)}; font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; display:flex; align-items:center; gap:4px">${logoImg(bk.company,14,'#fff')}${initials(bk.name)} ${bk.company || ''}</span></div>`;
   });
 
   if (CONF.selStart !== null && CONF.selEnd !== null) {
@@ -782,6 +808,22 @@ function bookConf() {
   toast("Time slot selected! Now please enter your details and click Confirm", "info");
 }
 
+// ── Email authorization (demo) ─────────────────────────────
+function checkEmailStatus(){
+  const e=document.getElementById('userEmail'),c=document.getElementById('userCompany'),st=document.getElementById('emailStatus');
+  if(!e||!st)return;
+  const v=e.value.trim(),co=emailCompany(v);
+  if(!v){st.className='f-hint';st.textContent='';if(c)c.disabled=false;return;}
+  if(co){
+    if(c){c.value=co;c.disabled=true;}
+    st.className='f-hint ok';st.innerHTML=`${logoImg(co,14)}<span>Authorized email · ${x(co)}</span>`;
+    if(S.company!==co){S.company=co;updateSwatchColor();}
+  }else{
+    if(c)c.disabled=false;
+    st.className='f-hint err';st.textContent=v.includes('@')?'Not on the authorized list. Ask the Meztal admin to add it.':'';
+  }
+}
+
 // ── Employee init ──────────────────────────────────────────
 function initEmployee(){
   const sel=document.getElementById('userCompany');
@@ -798,7 +840,7 @@ function initEmployee(){
   document.getElementById('btnAllDay')?.addEventListener('click',()=>setTimeMode(true));
   document.getElementById('btnCustom')?.addEventListener('click',()=>setTimeMode(false));
 
-  loadBk();loadSes();
+  loadBk();loadSes();checkEmailStatus();
   renderWeekBar();renderFloor();renderSelList();updateOcc();renderMyBk();renderCalendar();
 
   document.getElementById('prevWk')?.addEventListener('click',()=>{if(S.wkOffset>0){S.wkOffset--;renderWeekBar();}});
@@ -809,6 +851,7 @@ function initEmployee(){
   document.getElementById('cancelModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
   document.getElementById('calPrev')?.addEventListener('click',()=>{S.calMonth--;if(S.calMonth<0){S.calMonth=11;S.calYear--;}renderCalendar();});
   document.getElementById('calNext')?.addEventListener('click',()=>{S.calMonth++;if(S.calMonth>11){S.calMonth=0;S.calYear++;}renderCalendar();});
+  document.getElementById('userEmail')?.addEventListener('input',checkEmailStatus);
   document.getElementById('userEmail')?.addEventListener('blur',()=>{const v=document.getElementById('userEmail')?.value.trim();if(v){S.email=v;renderMyBk();renderCalendar();}});
   
   document.getElementById('confOverlay')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeConf();});
@@ -826,7 +869,8 @@ function checkPin(){
   else{const e=document.getElementById('pinErr');if(e){e.textContent='Incorrect PIN.';e.style.display='block';}const i=document.getElementById('pinInput');if(i){i.value='';i.focus();}}
 }
 function initAdmin(){
-  loadBk();renderAdmStats();renderRowOcc();renderReport();renderAdmTable();renderConfTable();
+  loadBk();renderAdmStats();renderRowOcc();renderDirAdmin();renderReport();renderAdmTable();renderConfTable();
+  initDirAdmin();
   document.getElementById('repMonth')?.addEventListener('change',renderReport);
   document.getElementById('btnRepCsv')?.addEventListener('click',reportCsv);
   document.getElementById('btnRepPrint')?.addEventListener('click',()=>window.print());
@@ -975,7 +1019,7 @@ function renderReport(){
   </div>`;
   if(!R.desks.length&&!R.conf.length){box.innerHTML=html+'<div class="tbl-empty">No reservations in this month</div>';return;}
   const tbl=(head,rows)=>`<table class="rep-tbl"><thead><tr>${head.map((h,i)=>`<th class="${i?'n':''}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'n':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  const coRows=R.byCo.map(c=>{const col=coColor(c.co);return [`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px"></span>${x(c.co)}`,c.desks,fmtH(c.hours),c.users.size,c.conf];});
+  const coRows=R.byCo.map(c=>{const col=coColor(c.co);return [`${coLogo(c.co)?logoImg(c.co,16).replace('style="','style="vertical-align:middle;margin-right:6px;'):`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:6px"></span>`}${x(c.co)}`,c.desks,fmtH(c.hours),c.users.size,c.conf];});
   const dayRows=R.byDay.map(d=>[fmtShort(d.d),d.desks,Math.round(d.desks/TOTAL_DESKS*100)+'%',fmtH(d.hours)]);
   const rowRows=R.byRow.map(r=>[r.row,r.desks,fmtH(r.hours)]);
   html+=`<div class="rep-grid">
@@ -994,10 +1038,116 @@ function reportCsv(){
   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MezSpace_report_${ym}.csv`;document.body.appendChild(a);a.click();a.remove();
 }
+
+// ══════════════════════════════════════════════════════════
+//   AUTHORIZED COMPANIES, EMAILS & LOGOS (admin)
+// ══════════════════════════════════════════════════════════
+let _logoTarget=null;
+function initDirAdmin(){
+  document.getElementById('btnAddEmail')?.addEventListener('click',addDirEmail);
+  document.getElementById('dirEmail')?.addEventListener('keydown',e=>{if(e.key==='Enter')addDirEmail();});
+  document.getElementById('btnImport')?.addEventListener('click',importDir);
+  document.getElementById('dirEmailSearch')?.addEventListener('input',renderDirEmails);
+  document.getElementById('btnAddCo')?.addEventListener('click',addDirCompany);
+  document.getElementById('btnResetDir')?.addEventListener('click',()=>{
+    if(!confirm('Reset the demo list of companies, emails and logos in this browser?'))return;
+    localStorage.removeItem(DIR_KEY);location.reload();
+  });
+  const f=document.getElementById('logoFile');
+  f?.addEventListener('change',()=>{const file=f.files[0];f.value='';if(file&&_logoTarget)readLogo(file,_logoTarget);});
+}
+function fillCoSelect(sel,keep){
+  if(!sel)return;const v=keep?sel.value:'';
+  sel.innerHTML='<option value="">Company…</option>'+COMPANY_NAMES.map(n=>`<option value="${x(n)}">${x(n)}</option>`).join('');
+  if(v&&COMPANIES[v])sel.value=v;
+}
+function renderDirAdmin(){
+  fillCoSelect(document.getElementById('dirEmailCo'),true);
+  renderDirEmails();renderDirCompanies();
+  const cnt=document.getElementById('dirCount');
+  if(cnt)cnt.textContent=`${Object.keys(DIR.emails).length} emails · ${COMPANY_NAMES.length} companies · ${Object.keys(DIR.logos).length} logos`;
+}
+function renderDirEmails(){
+  const box=document.getElementById('dirEmailList');if(!box)return;
+  const q=(document.getElementById('dirEmailSearch')?.value||'').toLowerCase();
+  const rows=Object.entries(DIR.emails).filter(([e,c])=>!q||e.includes(q)||c.toLowerCase().includes(q)).sort((a,b)=>a[1].localeCompare(b[1])||a[0].localeCompare(b[0]));
+  box.innerHTML=rows.length?rows.map(([e,c])=>`<div class="dir-row">
+      ${coLogo(c)?logoImg(c,18):`<span class="dir-dot" style="background:${coColor(c)}"></span>`}
+      <div class="dir-main"><div class="dir-name">${x(e)}</div><div class="dir-sub">${x(c)}${COMPANIES[c]?'':' (company removed)'}</div></div>
+      <button class="dir-btn danger" onclick="delDirEmail('${encodeURIComponent(e)}')">Remove</button></div>`).join('')
+    :'<div class="tbl-empty">No authorized emails</div>';
+}
+function renderDirCompanies(){
+  const box=document.getElementById('dirCoList');if(!box)return;
+  const count={};Object.values(DIR.emails).forEach(c=>{count[c]=(count[c]||0)+1;});
+  box.innerHTML=COMPANY_NAMES.map(n=>{const k=encodeURIComponent(n),lg=coLogo(n);return `<div class="dir-row">
+      ${lg?logoImg(n,26):`<span class="dir-logo-empty" style="border-color:${coColor(n)};color:${coColor(n)}">${x(initials(n))}</span>`}
+      <div class="dir-main"><div class="dir-name">${x(n)}</div><div class="dir-sub">${count[n]||0} email${(count[n]||0)===1?'':'s'} · ${lg?'logo loaded':'no logo yet (uses color)'}</div></div>
+      <button class="dir-btn" onclick="pickLogo('${k}')">${lg?'Change logo':'Upload logo'}</button>
+      ${lg?`<button class="dir-btn" onclick="delLogo('${k}')">Remove logo</button>`:''}
+      <button class="dir-btn danger" onclick="delDirCompany('${k}')">Delete</button></div>`;}).join('');
+}
+function addDirEmail(){
+  const eEl=document.getElementById('dirEmail'),cEl=document.getElementById('dirEmailCo');
+  const e=normEmail(eEl?.value),c=cEl?.value||'';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){toast('Enter a valid email','err');eEl?.focus();return;}
+  if(!c){toast('Select the company for this email','err');cEl?.focus();return;}
+  const was=DIR.emails[e];DIR.emails[e]=c;if(!saveDir())return;
+  eEl.value='';toast(was?`Email updated · ${c}`:`Email authorized · ${c}`,'ok');renderDirAdmin();
+}
+function delDirEmail(k){const e=decodeURIComponent(k);if(!confirm(`Remove ${e} from the authorized list?`))return;delete DIR.emails[e];saveDir();toast('Email removed','info');renderDirAdmin();}
+function importDir(){
+  const ta=document.getElementById('dirImport');if(!ta)return;
+  const lower={};COMPANY_NAMES.forEach(n=>lower[n.toLowerCase()]=n);
+  let ok=0,bad=[];
+  ta.value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{
+    const [e,...rest]=l.split(/[,;\t]/);const em=normEmail(e),co=lower[(rest.join(',')||'').trim().toLowerCase()];
+    if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)&&co){DIR.emails[em]=co;ok++;}else bad.push(l);
+  });
+  if(!saveDir())return;
+  ta.value=bad.join('\n');
+  toast(`${ok} email${ok===1?'':'s'} imported`+(bad.length?` · ${bad.length} line${bad.length===1?'':'s'} not recognized (left in the box)`:''),bad.length?'err':'ok');
+  renderDirAdmin();
+}
+function addDirCompany(){
+  const nEl=document.getElementById('dirCoName'),cEl=document.getElementById('dirCoColor');
+  const n=(nEl?.value||'').trim();
+  if(!n){toast('Enter the company name','err');nEl?.focus();return;}
+  if(COMPANY_NAMES.some(c=>c.toLowerCase()===n.toLowerCase())){toast('That company already exists','err');return;}
+  const col=(cEl?.value||'#2C5FD4').toUpperCase();
+  DIR.extra[n]=col;DIR.removed=DIR.removed.filter(r=>r!==n);COMPANIES[n]=col;
+  COMPANY_NAMES.push(n);COMPANY_NAMES.sort((a,b)=>a.localeCompare(b));
+  if(!saveDir())return;nEl.value='';toast(`Company added · ${n}. You can now upload its logo.`,'ok');renderDirAdmin();
+}
+function delDirCompany(k){
+  const n=decodeURIComponent(k);const emails=Object.keys(DIR.emails).filter(e=>DIR.emails[e]===n);
+  if(!confirm(`Delete ${n}?`+(emails.length?` Its ${emails.length} authorized email(s) will also be removed.`:'')+' Existing reservations are kept.'))return;
+  emails.forEach(e=>delete DIR.emails[e]);delete DIR.logos[n];
+  if(DIR.extra[n])delete DIR.extra[n];else if(!DIR.removed.includes(n))DIR.removed.push(n);
+  delete COMPANIES[n];const i=COMPANY_NAMES.indexOf(n);if(i>=0)COMPANY_NAMES.splice(i,1);
+  saveDir();toast(`${n} deleted`,'info');renderDirAdmin();
+}
+function pickLogo(k){_logoTarget=decodeURIComponent(k);document.getElementById('logoFile')?.click();}
+function delLogo(k){const n=decodeURIComponent(k);delete DIR.logos[n];saveDir();toast('Logo removed','info');renderDirAdmin();renderReport();}
+function readLogo(file,name){
+  if(!file.type.startsWith('image/')){toast('Choose an image file (PNG, JPG or SVG)','err');return;}
+  const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>{
+    const M=160,sc=Math.min(1,M/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(img.width*sc));cv.height=Math.max(1,Math.round(img.height*sc));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    DIR.logos[name]=cv.toDataURL('image/png');
+    if(!saveDir()){delete DIR.logos[name];return;}
+    toast(`Logo saved for ${name}`,'ok');renderDirAdmin();renderReport();
+  };img.onerror=()=>toast('Could not read that image','err');img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
+
 function x(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ── Boot ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
+  loadDir();
   if(document.getElementById('floorPlan'))initEmployee();
   if(document.getElementById('pinScreen')){loadBk();document.getElementById('pinInput')?.focus();document.getElementById('pinInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')checkPin();});}
 });

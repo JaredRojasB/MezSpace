@@ -16,9 +16,31 @@
 .rep-tbl td{padding:6px 8px;border-bottom:1px solid var(--gray-100)}
 .rep-tbl td.n,.rep-tbl th.n{text-align:right;white-space:nowrap}
 .rep-h{font-size:11px;font-weight:800;color:var(--navy);margin:0 0 6px}
+.demo-note{margin:12px 18px 0;padding:9px 12px;border-radius:8px;background:#FFF7ED;border:1px solid #F6C9A3;color:#8A4B16;font-size:11.5px;line-height:1.55}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:22px;padding:14px 18px 18px}
+.dir-help{font-size:11.5px;color:var(--gray-400);margin:0 0 8px}
+.dir-form{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dir-form input[type=color]{width:36px;height:32px;border:1px solid var(--gray-200);border-radius:6px;padding:2px;background:#fff;cursor:pointer}
+.btn-dir{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-dir:hover{background:var(--navy-mid)}
+.dir-import{margin-top:8px;font-size:11.5px;color:var(--gray-600)}
+.dir-import summary{cursor:pointer;font-weight:600}
+.dir-import textarea{width:100%;margin:6px 0;border:1px solid var(--gray-200);border-radius:6px;padding:8px;font:12px/1.5 var(--font);resize:vertical;box-sizing:border-box}
+.dir-list{max-height:330px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px}
+.dir-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--gray-100)}
+.dir-row:last-child{border-bottom:none}
+.dir-main{flex:1;min-width:0}
+.dir-name{font-size:12.5px;font-weight:600;color:var(--gray-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dir-sub{font-size:10.5px;color:var(--gray-400)}
+.dir-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dir-logo-empty{width:26px;height:26px;border-radius:50%;border:1.5px dashed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
+.dir-btn{background:#fff;border:1px solid var(--gray-200);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--gray-600);cursor:pointer;white-space:nowrap}
+.dir-btn:hover{border-color:var(--gray-300);background:var(--gray-50)}
+.dir-btn.danger{color:#B91C1C}
+.dir-btn.danger:hover{background:#FEF2F2;border-color:#F1B5B5}
 @media print{
   body{height:auto!important;overflow:visible!important;display:block!important}
-  .header,#pinScreen,.tbl-card:not(#reportCard),.stats-row,.toast-zone,.tbl-filters{display:none!important}
+  .header,.demo-banner,#pinScreen,.tbl-card:not(#reportCard),.stats-row,.toast-zone,.tbl-filters{display:none!important}
   #adminDash{display:block!important}
   #reportCard{box-shadow:none;border:none}
   #reportCard .tbl-toolbar:before{content:"MezSpace - Meztal office usage report";display:block;font-weight:800;margin-bottom:4px}
@@ -33,6 +55,11 @@
   </div>
   <a href="https://jaredrojasb.github.io/MezSpace/" class="btn-ghost">← Employee View</a>
 </header>
+<div class="demo-banner">
+  <span class="demo-tag">DEMO</span>
+  <span><b>Demo version.</b> Everything in this panel is saved only in this browser. The final version uses Meztal&rsquo;s cloud database and a secure login.</span>
+  <span class="demo-es">Versión demo: todo se guarda solo en este navegador.</span>
+</div>
 
 <div id="pinScreen">
   <div class="pin-screen">
@@ -64,6 +91,44 @@
         <span id="admDateLbl" style="font-size:12px;color:var(--gray-400)"></span>
       </div>
       <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px" id="rowOccGrid"></div>
+    </div>
+
+    <!-- Authorized companies, emails & logos -->
+    <div class="tbl-card" id="dirCard" style="margin-bottom:16px">
+      <div class="tbl-toolbar" style="border-bottom:1px solid var(--gray-200)">
+        <span class="tbl-title">Authorized Companies, Emails &amp; Logos</span>
+        <div class="tbl-filters"><span id="dirCount" style="font-size:12px;color:var(--gray-400)"></span><button class="btn-clear" id="btnResetDir">Reset demo list</button></div>
+      </div>
+      <div class="demo-note"><b>Demo:</b> this list is saved only in this browser, so other devices will not see it. In the final version it is stored in Meztal&rsquo;s cloud database and applies to every device.<br><b>Demo:</b> esta lista solo se guarda en este navegador. En la versión final se guarda en la base de datos de Meztal y aplica en todos los dispositivos.</div>
+      <div class="dir-grid">
+        <div class="dir-col">
+          <div class="rep-h">Authorized emails</div>
+          <p class="dir-help">Only these emails can book. The company is assigned automatically from the email.</p>
+          <div class="dir-form">
+            <input class="f-search" id="dirEmail" placeholder="name@company.com" style="flex:1;min-width:160px">
+            <select class="f-date" id="dirEmailCo" style="min-width:150px"></select>
+            <button class="btn-dir" id="btnAddEmail">Add email</button>
+          </div>
+          <details class="dir-import">
+            <summary>Import a list (one per line: email, company)</summary>
+            <textarea id="dirImport" rows="4" placeholder="ana.lopez@atlas.com, Atlas&#10;luis.garcia@kare.com, KARE"></textarea>
+            <button class="btn-dir" id="btnImport">Import</button>
+          </details>
+          <input class="f-search" id="dirEmailSearch" placeholder="Search emails or companies…" style="width:100%;margin:8px 0 6px">
+          <div class="dir-list" id="dirEmailList"></div>
+        </div>
+        <div class="dir-col">
+          <div class="rep-h">Companies &amp; logos</div>
+          <p class="dir-help">The logo replaces the color on desks and the conference room. Use PNG with transparent background or SVG.</p>
+          <div class="dir-form">
+            <input class="f-search" id="dirCoName" placeholder="New company name" style="flex:1;min-width:160px">
+            <input type="color" id="dirCoColor" value="#2C5FD4" title="Backup color (used until a logo is uploaded)">
+            <button class="btn-dir" id="btnAddCo">Add company</button>
+          </div>
+          <div class="dir-list" id="dirCoList" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <input type="file" id="logoFile" accept="image/*" hidden>
     </div>
 
     <!-- Monthly report -->

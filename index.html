@@ -16,6 +16,12 @@
   <!-- Admin panel accessible at /admin.html (not publicly linked) -->
 </header>
 
+<div class="demo-banner">
+  <span class="demo-tag">DEMO</span>
+  <span><b>Demo version.</b> This shows how the final system works. Names, emails, companies and logos entered here are saved only in this browser. The final version will use Meztal&rsquo;s real data. Try the sample email <b>ana.lopez@atlas-demo.com</b>.</span>
+  <span class="demo-es">Versión demo: los datos solo se guardan en este navegador; la versión final usará los datos reales de Meztal.</span>
+</div>
+
 <div class="occ-bar">
   <span class="occ-label">Occupancy</span>
   <div class="occ-track"><div class="occ-fill low" id="occFill" style="width:0%"></div></div>
@@ -42,7 +48,7 @@
             <div class="leg-box-co">
               <span style="background:#922B21"></span><span style="background:#1E8449"></span><span style="background:#1A237E"></span>
             </div>
-            Occupied (company color)
+            Occupied (company logo or color)
           </div>
           <div class="leg-item"><div class="leg-box sl"></div> Selected</div>
           <div class="leg-item"><div class="leg-box ad"></div> Not available</div>
@@ -63,16 +69,18 @@
           <input class="f-input" id="userName" type="text" placeholder="Your full name" autocomplete="name">
         </div>
         <div class="f-group">
-          <label class="f-label" for="userCompany">Company</label>
+          <label class="f-label" for="userEmail">Company Email</label>
+          <input class="f-input" id="userEmail" type="email" placeholder="you@company.com" autocomplete="email">
+          <div class="f-hint" id="emailStatus"></div>
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="userCompany">Company <span class="f-label-note">(filled in from your email)</span></label>
           <div style="display:flex;align-items:center;gap:7px">
             <span id="companySwatch" style="display:none;width:12px;height:12px;border-radius:50%;flex-shrink:0"></span>
             <select class="f-select" id="userCompany"></select>
           </div>
         </div>
-        <div class="f-group">
-          <label class="f-label" for="userEmail">Email</label>
-          <input class="f-input" id="userEmail" type="email" placeholder="you@company.com" autocomplete="email">
-        </div>
+        <div class="demo-form-note">Demo: your name, email and company are saved only in this browser.<br>Demo: tu nombre, correo y empresa solo se guardan en este navegador.</div>
         <!-- Time picker -->
         <div class="f-group" style="margin-bottom:0">
           <label class="f-label">Booking Hours</label>
