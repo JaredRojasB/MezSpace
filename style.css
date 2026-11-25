@@ -445,7 +445,7 @@ button,input,select{font-family:var(--font)}
 .rows-col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:clamp(5px,.6vh,8px)}
 .window-strip{flex-shrink:0;width:clamp(16px,1.6vw,22px);border-radius:5px;border:1px solid var(--gray-200);
   background:repeating-linear-gradient(180deg,#EEF2F7 0 22px,#E3E9F1 22px 23px);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px #F8FAFC}
-.window-strip span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(6.5px,.62vw,8.5px);font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray-400)}
+.window-strip span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(7.5px,.7vw,9.5px);font-weight:700;letter-spacing:1px;color:var(--gray-400)}
 .demo-banner{flex-wrap:nowrap;padding-top:4px;padding-bottom:4px}
 .demo-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .hdr-actions{position:relative;display:flex;align-items:center;gap:8px}
@@ -475,3 +475,12 @@ button,input,select{font-family:var(--font)}
   .desk-row .desk .desk-icon{flex:0 0 auto;width:clamp(28px,3vw,44px);height:70%;padding:0}
   .desk-row .desk .desk-id{padding:0}
 }
+
+/* v10: hallway, fishbowl, common area card */
+.hallway-strip{flex-shrink:0;width:clamp(16px,1.6vw,22px);align-self:stretch;border-radius:6px;background:#F1F4F8;border:1.5px dashed var(--gray-300);display:flex;align-items:center;justify-content:center}
+.hallway-strip span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(7.5px,.7vw,9.5px);font-weight:700;letter-spacing:1px;color:var(--gray-400)}
+.common-card{flex-shrink:0;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:clamp(5px,.6vw,8px)}
+.common-card .common-area{height:clamp(30px,4.4vh,50px)}
+.bld-card.fishbowl{position:relative;border:1.5px solid #C6D6EA;background:linear-gradient(180deg,#F5F9FE 0%,#FFFFFF 60%);padding-top:clamp(12px,1.4vh,16px)}
+.zone-chip{position:absolute;top:-8px;left:14px;background:#fff;border:1px solid #C6D6EA;border-radius:99px;padding:1px 9px;font-size:9px;font-weight:700;color:#5A7394;letter-spacing:.3px;z-index:1}
+.standalone-wrap .desk-icon svg{max-height:68px;max-width:40px}

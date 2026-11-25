@@ -388,9 +388,9 @@ function renderFloor(){
     confEl.addEventListener('click', () => openConf(S.selDate));
   }
 
-  // Rows 1-4 sit next to the window: wrap them with a vertical "VENTANA" strip
+  // Rows 1-4 sit next to the window: wrap them with a vertical "Window" strip
   const rowsWrap=document.createElement('div');rowsWrap.className='rows-wrap';
-  const win=document.createElement('div');win.className='window-strip';win.innerHTML='<span>Ventana</span>';
+  const win=document.createElement('div');win.className='window-strip';win.innerHTML='<span>Window</span>';
   rowsWrap.appendChild(win);
   const rowsCol=document.createElement('div');rowsCol.className='rows-col';rowsWrap.appendChild(rowsCol);
   LEFT_SECS.forEach(sec=>{
@@ -406,7 +406,7 @@ function renderFloor(){
     block.appendChild(rA);block.appendChild(sep);block.appendChild(rB);
     content.appendChild(block);
     // Single desk goes at the right end of the row
-    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualH));content.appendChild(sw);}
+    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualV));content.appendChild(sw);}
     row.appendChild(content);rowsCol.appendChild(row);
   });
   lCard.appendChild(rowsWrap);
@@ -445,18 +445,19 @@ function renderFloor(){
       cemTip.style.opacity='0';cemTip.style.pointerEvents='none';
     });
   },0);bldL.appendChild(lCard);fp.appendChild(bldL);
+  const hall=document.createElement('div');hall.className='hallway-strip';hall.innerHTML='<span>Hallway</span>';fp.appendChild(hall);
 
   // RIGHT
   const bldR=document.createElement('div');bldR.className='building building-right';
-  const rCard=document.createElement('div');rCard.className='bld-card';
+  const rCard=document.createElement('div');rCard.className='bld-card fishbowl';rCard.innerHTML='<div class="zone-chip">Fishbowl</div>';
   const common=document.createElement('div');common.className='common-area';
   common.innerHTML=`<div class="common-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg></div><span class="common-lbl">Common Area</span>`;
-  rCard.appendChild(common);
+  const commonCard=document.createElement('div');commonCard.className='common-card';commonCard.appendChild(common);bldR.appendChild(commonCard);
   RIGHT_SECS.forEach(sec=>{
     const row=document.createElement('div');row.className='sec-row';
     const tag=document.createElement('div');tag.className='row-tag';tag.textContent=sec.label;row.appendChild(tag);
     const content=document.createElement('div');content.className='sec-content';
-    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualH));content.appendChild(sw);}
+    if(sec.standalone){const sw=document.createElement('div');sw.className='standalone-wrap';sw.appendChild(mkDesk(`${sec.id}-S`,dualV));content.appendChild(sw);}
     const block=document.createElement('div');block.className='sec-block';
     const rA=document.createElement('div');rA.className='desk-row';
     for(let c=1;c<=sec.cols;c++)rA.appendChild(mkDesk(`${sec.id}-A${c}`,dualH));
@@ -478,7 +479,7 @@ function renderFloor(){
     // Standalone non-bookable desk
     const sw=document.createElement('div');sw.className='standalone-wrap';
     const dS=document.createElement('div');dS.className='desk desk-ne';
-    dS.innerHTML=dualH('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
+    dS.innerHTML=dualV('#BCC8DA')+'<span class="desk-id" style="color:#BCC8DA">—</span>';
     sw.appendChild(dS);content.appendChild(sw);
     // Block with top/bottom non-bookable desk
     const block=document.createElement('div');block.className='sec-block';
