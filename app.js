@@ -280,6 +280,17 @@ function mkDesk(id,iconFn,nonBookable=false){
   return el;
 }
 
+// ── Hover cards that stay open while the mouse is on the card or the tooltip ──
+function bindHoverTip(anchor,tip,place){
+  const show=()=>{clearTimeout(tip._hideT);place();tip.style.opacity='1';tip.style.pointerEvents='auto';};
+  const hide=()=>{clearTimeout(tip._hideT);tip._hideT=setTimeout(()=>{tip.style.opacity='0';tip.style.pointerEvents='none';},250);};
+  anchor.addEventListener('mouseenter',show);anchor.addEventListener('mouseleave',hide);
+  if(!tip._bound){tip._bound=true;
+    tip.addEventListener('mouseenter',()=>clearTimeout(tip._hideT));
+    tip.addEventListener('mouseleave',()=>tip._hide&&tip._hide());}
+  tip._hide=hide;
+}
+
 // ── Render floor ───────────────────────────────────────────
 function renderFloor(){
   const fp=document.getElementById('floorPlan');if(!fp)return;
@@ -361,15 +372,8 @@ function renderFloor(){
       document.body.appendChild(tip);
     }
     tip.innerHTML=hritHTML;
-    hritEl.addEventListener('mouseenter',()=>{
-      const r=hritEl.getBoundingClientRect();
-      tip.style.top=(r.bottom+window.scrollY+10)+'px';
-      tip.style.left=(r.left+window.scrollX)+'px';
-      tip.style.opacity='1';tip.style.pointerEvents='auto';
-    });
-    hritEl.addEventListener('mouseleave',()=>{
-      tip.style.opacity='0';tip.style.pointerEvents='none';
-    });
+    bindHoverTip(hritEl,tip,()=>{const r=hritEl.getBoundingClientRect();
+      tip.style.top=(r.bottom+window.scrollY+10)+'px';tip.style.left=(r.left+window.scrollX)+'px';});
   },0);
   // Apply company color using setProperty (overrides !important CSS)
   const confEl = topRooms.querySelector('#confRoomBox');
@@ -435,15 +439,8 @@ function renderFloor(){
         <b>On-site:</b> Mon, Wed &amp; Fri · 8 AM – 6 PM<br>
         <b>Remote:</b> Tue &amp; Thu · 8 AM – 6 PM
       </div>`;
-    cemEl.addEventListener('mouseenter',()=>{
-      const r=cemEl.getBoundingClientRect();
-      cemTip.style.top=(r.top+window.scrollY-cemTip.offsetHeight-10)+'px';
-      cemTip.style.left=(r.left+window.scrollX)+'px';
-      cemTip.style.opacity='1';cemTip.style.pointerEvents='auto';
-    });
-    cemEl.addEventListener('mouseleave',()=>{
-      cemTip.style.opacity='0';cemTip.style.pointerEvents='none';
-    });
+    bindHoverTip(cemEl,cemTip,()=>{const r=cemEl.getBoundingClientRect();
+      cemTip.style.top=(r.top+window.scrollY-cemTip.offsetHeight-10)+'px';cemTip.style.left=(r.left+window.scrollX)+'px';});
   },0);bldL.appendChild(lCard);fp.appendChild(bldL);
   const hall=document.createElement('div');hall.className='hallway-strip';hall.innerHTML='<span>Hallway</span>';fp.appendChild(hall);
 
